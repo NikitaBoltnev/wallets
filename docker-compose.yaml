@@ -1,0 +1,27 @@
+services:
+  db: 
+    image: postgres:16 
+    env_file:
+      - config.env
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pg-data:/var/lib/postgresql
+    healthcheck: 
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d wallets" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  app:
+    build: . 
+    ports:
+      - "8080:8080" 
+    env_file:
+      - config.env 
+    depends_on:
+      db:
+        condition: service_healthy 
+
+volumes:
+   pg-data:
